@@ -1,0 +1,18 @@
+Local, unmodified browser libraries (no build needed)
+
+Leaflet 1.9.4 (BSD-2-Clause)
+https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js
+https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css
+License: leaflet-LICENSE.txt
+
+D3 7.9.0 (ISC)
+https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js
+License: d3-LICENSE.txt
+
+d3-hexbin 0.2.2 (BSD-3-Clause)
+https://cdn.jsdelivr.net/npm/d3-hexbin@0.2.2/build/d3-hexbin.min.js
+License: d3-hexbin-LICENSE.txt
+
+@bluehalo/leaflet-d3 6.1.3 (MIT)
+https://cdn.jsdelivr.net/npm/@bluehalo/leaflet-d3@6.1.3/dist/leaflet-d3.js
+License: leaflet-d3-LICENSE.txt
