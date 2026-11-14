@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chicago Crime Hexbins</title>
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Chicago Crime Hexbins</h1>
+    <p id="description">2025 reported crimes. Click a hexagon to see crime by district.</p>
+  </header>
+
+  <main>
+    <div class="controls">
+      <label for="groupBy">Group crimes by:</label>
+      <select id="groupBy">
+        <option value="district" selected>District</option>
+        <option value="community">Community Area</option>
+        <option value="ward">Ward</option>
+      </select>
+      <label for="hexSize">Hexagon size:</label>
+      <select id="hexSize">
+        <option value="12">Small</option>
+        <option value="20" selected>Medium</option>
+        <option value="30">Large</option>
+      </select>
+      <button id="reset" type="button">Reset map</button>
+      <span id="status" role="status">Loading crime data...</span>
+    </div>
+
+    <div id="map" aria-label="Map of reported Chicago crimes"></div>
+
+    <div class="legend" aria-label="Crimes per hexagon">
+      <strong>Crimes per hexagon</strong>
+      <span><i style="background:#ffffb2"></i>1–99</span>
+      <span><i style="background:#fecc5c"></i>100–499</span>
+      <span><i style="background:#fd8d3c"></i>500–1,999</span>
+      <span><i style="background:#f03b20"></i>2,000–4,999</span>
+      <span><i style="background:#bd0026"></i>5,000+</span>
+    </div>
+    <p class="note">Zooming or changing the hexagon size regroups the crimes. Colors show counts, not population-adjusted crime rates. Empty areas have no hexagon.</p>
+    <p class="note">Source: supplied Crimes-2025_20261107.xlsx. District, community area, and ward use the numbers recorded for each crime. Popups show up to 10 groups present in that hexagon.</p>
+  </main>
+
+  <!-- Local library copies mean no account, installation, or build is needed. -->
+  <script src="vendor/leaflet.js"></script>
+  <script src="vendor/d3.min.js"></script>
+  <script src="vendor/d3-hexbin.min.js"></script>
+  <script src="vendor/leaflet-d3.js"></script>
+  <script src="crime-data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

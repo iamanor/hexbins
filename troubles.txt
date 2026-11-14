@@ -1,0 +1,107 @@
+Chicago Crime Hexbins - JavaScript troubleshooting
+Date: November 12, 2026
+
+1. Old D3 color-scale code did not work with D3 7.
+
+   While adapting the supplied example, this old call was reproduced in
+   a JavaScript check using the included D3 7.9.0 library:
+       d3.scale.linear()
+
+   Actual error:
+       TypeError: Cannot read properties of undefined (reading 'linear')
+
+   Cause: The supplied example uses D3 3 syntax. D3 7 uses names such as
+   d3.scaleLinear(), and no longer has d3.scale.linear().
+
+   Correction: The finished map uses d3.scaleThreshold() so each crime
+   count belongs to one of five clear color ranges. The legend uses
+   those same ranges: 1-99, 100-499, 500-1,999, 2,000-4,999, and 5,000+.
+   Check: The corrected scale was created successfully in JavaScript,
+   and the colored hexbins were inspected in Chrome.
+
+2. The old data-first click callback received a mouse event instead.
+
+   Reproduced compatibility check:
+       function (bin) { bin.forEach(...); }
+
+   Actual error when D3 dispatch passed an event followed by the bin:
+       TypeError: bin.forEach is not a function
+
+   Cause: With D3 7 and this plugin, the callback arguments are
+   (event, bin). The first argument is not an array of crimes.
+
+   Correction in script.js:
+       function (event, bin) {
+         L.DomEvent.stopPropagation(event);
+         showDistricts(bin, map.mouseEventToLatLng(event));
+       }
+
+   The original crime record is inside point.o, so the district is
+   point.o[2], not point[2].
+   Check: A corrected dispatch callback received the expected district.
+   A mouse click in Chrome displayed actual district counts.
+
+3. A mouse click opened the popup and immediately closed it.
+
+   Observed during the first Chrome test: clicking a hexagon focused it,
+   but no popup stayed visible. Pressing Enter on the same hexagon worked.
+   This was a JavaScript event-handling bug; no console error appeared.
+
+   Cause: The hexagon's click continued to the Leaflet map, whose normal
+   click behavior closed the popup that had just opened.
+
+   Correction: Add L.DomEvent.stopPropagation(event) before showDistricts().
+   Check: The corrected mouse click left a popup visible for a 9,678-crime
+   hexagon: District 001 had 6,279 and District 018 had 3,399. An independent
+   Web Mercator/D3 hexbin calculation from crime-data.js matched both counts.
+
+Other checks
+------------
+The JavaScript syntax check passed.
+Mapped records: 235,488. Omitted records: 2,720 without usable coordinates.
+Mapped plus omitted equals all 238,208 source records. No mapped record
+has a missing district. All valid locations were retained, without sampling.
+The actual popup function passed checks for more than 10 districts, the
+10-row limit, descending counts, equal-count ties, fewer than 10 districts,
+and a missing-district example. Unknown districts are noted but not ranked.
+The size control changes both the binning radius and the visible radius;
+otherwise the plugin's default drawing size can leave gaps between bins.
+
+4. Directly opening index.html displayed repeated 403 Access blocked tiles.
+
+   Reported after the first delivery. The crime hexbins still appeared, but
+   the OpenStreetMap background showed blocked-access images. The page was
+   confirmed open as file://../hexbins/index.html.
+
+   Cause: A local file does not supply the website HTTP Referer expected
+   by OpenStreetMap's tile usage policy. The original browser test used a
+   local HTTP server and missed this direct-file problem.
+
+   Correction: Added open-map.bat to serve the folder at
+   http://127.0.0.1:8765/, and corrected README.txt. Direct-file mode now
+   removes the background tile layer and displays instructions for opening
+   the map through the launcher instead of leaving blocked-access tiles.
+   No headers are spoofed and no alternate OSM server is used to evade a block.
+   Policy: https://operations.osmfoundation.org/policies/tiles/
+
+   Verification: Opened http://127.0.0.1:8765/ in Chrome after the fix.
+   Street tiles loaded normally; no blocked-access images or console errors.
+
+
+Grouping dropdown update
+------------------------
+Added District, Community Area, and Ward options. The data converter now
+keeps all three workbook fields. Switching the selection updates an open
+popup immediately, its heading, its table labels, and the page description.
+The hexagon counts and color scale stay the same.
+
+Verification: JavaScript syntax passed. All three rankings were checked
+against independent counts for the same 9,678-crime hexagon:
+Districts: 001 = 6,279; 018 = 3,399.
+Community areas: 32 = 6,271; 8 = 3,399; 28 = 8.
+Wards: 42 = 6,014; 34 = 3,070; 4 = 354; 2 = 240.
+The browser displayed these same values when switching the dropdown,
+with no JavaScript console errors. The 10-group limit and missing values
+were also checked for all three options. Of the 235,488 mapped records,
+9 lack a community area and 1 lacks a ward. These values are noted as
+unknown in popups rather than ranked as numbered areas.
