@@ -8,7 +8,6 @@ var tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 L.control.scale().addTo(map);
 
-// These fixed count ranges match the legend below the map.
 var colors = d3.scaleThreshold()
   .domain([100, 500, 2000, 5000])
   .range(["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]);
@@ -23,13 +22,6 @@ document.getElementById("status").textContent =
   crimeInfo.mapped.toLocaleString() + " crimes mapped; " +
   crimeInfo.skipped.toLocaleString() + " records without usable coordinates omitted.";
 
-// Direct file URLs do not send the website referrer required by the tile server.
-if (window.location.protocol === "file:") {
-  map.removeLayer(tiles);
-  document.getElementById("status").textContent =
-    "For the background map, run open-map.bat and visit http://127.0.0.1:8765/ instead of opening this file directly.";
-}
-
 // Columns in crime-data.js: longitude, latitude, district, community area, ward.
 var groups = {
   district: { column: 2, label: "District", plural: "districts" },
@@ -39,7 +31,7 @@ var groups = {
 var selectedBin;
 var currentPopup;
 
-// The plugin sends the mouse event first, then the points in the clicked bin.
+// show the popup and stop it from hiding right away
 hexLayer.dispatch().on("click", function (event, bin) {
   L.DomEvent.stopPropagation(event);
   showCrimes(bin, map.mouseEventToLatLng(event));
@@ -67,6 +59,7 @@ function showCrimes(bin, location) {
   });
   var top10 = areas.slice(0, 10);
 
+  // Made a div box to add the content to
   var content = document.createElement("div");
   content.innerHTML = "<h2>Crime by " + group.label + "</h2><p>" +
     bin.length.toLocaleString() + " crimes in this hexagon</p>";
@@ -90,6 +83,7 @@ function showCrimes(bin, location) {
     .setLatLng(location).setContent(content).openOn(map);
 }
 
+// allow group by change events
 document.getElementById("groupBy").onchange = function () {
   var group = groups[this.value];
   document.getElementById("description").textContent =
@@ -100,39 +94,24 @@ document.getElementById("groupBy").onchange = function () {
   }
 };
 
-document.getElementById("hexSize").onchange = function () {
-  map.closePopup();
-  var size = Number(this.value);
-  hexLayer.radius(size).radiusRange([size, size]).redraw();
-  labelHexagons();
-};
+// document.getElementById("hexSize").onchange = function () {
+//   map.closePopup();
+//   var size = Number(this.value);
+//   hexLayer.radius(size).radiusRange([size, size]).redraw();
+//   labelHexagons();
+// };
 
+// reset map location to bounds
 document.getElementById("reset").onclick = function () {
   map.closePopup();
   map.fitBounds(cityBounds, { padding: [20, 20] });
 };
 
+// Had bug when zooming it would show the same results with different sized hex bin
 // Close old results when zooming, since the points are regrouped at each zoom.
 map.on("zoomstart", function () { map.closePopup(); });
 
-// Allow keyboard users to open a hexagon's popup with Enter or Space.
-function labelHexagons() {
-  d3.selectAll(".hexbin-grid")
-    .attr("tabindex", 0).attr("role", "button")
-    .attr("aria-label", function (bin) {
-      var group = groups[document.getElementById("groupBy").value];
-      return bin.length + " crimes. Show " + group.plural;
-    })
-    .on("keydown", function (event, bin) {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        showCrimes(bin, L.latLng(bin[0].o[1], bin[0].o[0]));
-      }
-    });
-}
-map.on("moveend", labelHexagons);
-labelHexagons();
-
+// Show error if no datas
 tiles.on("tileerror", function () {
   document.getElementById("status").textContent =
     crimeInfo.mapped.toLocaleString() + " crimes mapped. Background tiles could not load; check your internet connection.";
